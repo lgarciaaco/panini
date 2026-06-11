@@ -70,11 +70,12 @@ python3.11 scripts/update_inventory.py \
   --stickers ARG3,COL13,URU2,BRA7
 ```
 
-### Step 4 — After all images processed:
+### Step 4 — After all images processed, publish:
 ```bash
 python3.11 scripts/status.py
-python3.11 scripts/report.py
+python3.11 scripts/publish.py
 ```
+This regenerates the report, commits `docs/index.html`, and pushes to GitHub Pages automatically. The user never runs commands — the agent does everything.
 
 ### Validation rules
 - Only pass codes that exist in `data/catalog.json` (update_inventory.py will reject unknowns)
@@ -86,11 +87,16 @@ python3.11 scripts/report.py
 ## Key files
 - `data/catalog.json` — 980-sticker master list
 - `data/inventory.db` — SQLite DB (auto-created)
+- `docs/index.html` — GitHub Pages source (auto-generated, do not edit by hand)
 - `images/inbox/` — drop new photos here
 - `images/processed/` — moved here after update_inventory.py runs
-- `reports/` — HTML reports for iPhone
+- `images/faces/` — family member photos embedded in the report header
+- `reports/` — HTML reports (local archive)
 
-## CLI reference
+## Live report
+https://lgarciaaco.github.io/panini/ — auto-refreshes every 5 minutes in the browser.
+
+## CLI reference (agent use only — user never runs these)
 ```bash
 python3.11 scripts/build_catalog.py   # one-time setup
 python3.11 scripts/scan.py            # list inbox contents
@@ -99,4 +105,5 @@ python3.11 scripts/status.py          # terminal overview
 python3.11 scripts/missing.py         # missing list (--team ARG or --group J)
 python3.11 scripts/trade.py           # extras for trading
 python3.11 scripts/report.py          # generate iPhone HTML report
+python3.11 scripts/publish.py         # regenerate + commit + push to GitHub Pages
 ```

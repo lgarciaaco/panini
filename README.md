@@ -1,32 +1,26 @@
 # Panini FIFA World Cup 2026 — Collection Tracker
 
-Agentic system to track your Panini sticker collection via photos.
+Fully agentic sticker collection tracker. Drop photos, talk to the Cursor agent — you never run a single command.
 
-## Quick start
+## How it works
 
-No external API key needed — vision analysis runs through Cursor's built-in AI.
+1. **Drop photos** into `images/inbox/` (album pages or loose sticker piles)
+2. **Tell the Cursor agent** "scan my inbox"
+3. **Done.** The agent scans every image, updates the database, generates the report, and publishes it live.
 
-```bash
-# 1. Install dependencies
-/Library/Frameworks/Python.framework/Versions/3.11/bin/pip3 install -r requirements.txt
+No manual commands. No terminal. No git. The agent handles the entire pipeline: image analysis, inventory updates, report generation, commit, and push to GitHub Pages.
 
-# 2. Build the sticker catalog (one-time)
-python3.11 scripts/build_catalog.py
+## Live report
 
-# 3. Drop photos in images/inbox/
+**https://lgarciaaco.github.io/panini/**
 
-# 4. List what's ready to scan
-python3.11 scripts/scan.py
+Auto-refreshes every 5 minutes in the browser. Updated automatically by the agent after every scan.
 
-# 5. In Cursor chat: say "scan my inbox"
-#    The agent reads each image and updates the DB automatically.
-
-# 6. View results
-python3.11 scripts/status.py      # terminal overview
-python3.11 scripts/missing.py     # missing stickers grouped by team
-python3.11 scripts/trade.py       # extras available for trading
-python3.11 scripts/report.py      # generate HTML report → open on iPhone
-```
+- Dark mode, mobile-first layout
+- Tabs: Missing | Owned | Extras
+- Collapsible groups and teams
+- Instant search by player name, team, or code
+- Family face avatars in the header (drop photos in `images/faces/`)
 
 ## Photo guide
 
@@ -46,36 +40,28 @@ panini/
 ├── data/
 │   ├── catalog.json       # 980-sticker master list
 │   └── inventory.db       # SQLite database (auto-created)
+├── docs/
+│   └── index.html         # GitHub Pages source (auto-generated)
 ├── images/
 │   ├── inbox/             # Drop new photos here
 │   ├── processed/         # Moved here after scan
+│   ├── faces/             # Family member photos for report header
 │   └── extras/            # Optional: dedicated extras folder
-├── reports/               # Generated HTML reports
+├── reports/               # Generated HTML reports (local archive)
 ├── src/
 │   ├── catalog.py         # Catalog loader/queries
 │   ├── inventory.py       # Database operations
-│   ├── vision.py          # Claude vision integration
 │   └── reports.py         # Terminal output (Rich)
 └── scripts/
     ├── build_catalog.py   # Generate catalog.json (one-time)
-    ├── scan.py            # Main scan pipeline
+    ├── scan.py            # List inbox contents
+    ├── update_inventory.py# Update DB from scan results
     ├── status.py          # Collection overview
     ├── missing.py         # Missing sticker list
     ├── trade.py           # Extras / trade list
-    └── report.py          # HTML report generator
+    ├── report.py          # HTML report generator
+    └── publish.py         # Regenerate report + commit + push
 ```
-
-## Live report
-
-**https://lgarciaaco.github.io/panini/**
-
-Auto-refreshes every 5 minutes. Run `python3.11 scripts/report.py` to update — it writes both `reports/wc2026_YYYY-MM-DD.html` and `docs/index.html` (GitHub Pages source).
-
-- Dark mode, mobile-first layout
-- Tabs: Missing | Owned | Extras
-- Collapsible groups and teams
-- Instant search by player name, team, or code
-- Family face avatars in the header (drop photos in `images/faces/`)
 
 ## Album facts
 
