@@ -1,0 +1,102 @@
+---
+description: Panini WC 2026 Collection Tracker — agent conventions and scan protocol
+globs: ["**/*.py", "data/*.json", "images/**"]
+alwaysApply: true
+---
+
+## Project purpose
+Track a Panini FIFA World Cup 2026 sticker collection. User drops photos of album pages and loose sticker piles into `images/inbox/`. The Cursor agent analyzes each photo with its built-in vision, then calls Python scripts to update the SQLite inventory. No external API keys required.
+
+## Sticker code format
+- Team stickers: `{TEAM_CODE}{NUMBER}` — no space, uppercase (e.g. `ARG17`, `SUI6`)
+- FWC stickers: `FWC1` through `FWC19`
+- Panini logo: `PANINI`
+- Always normalize: `.upper().replace(" ", "")`
+
+## Album structure (980 stickers total)
+- `PANINI` — Panini logo foil (1)
+- `FWC1–FWC8` — Intro foils
+- `FWC9–FWC19` — FIFA Museum foils
+- 48 teams × 20 stickers: `{TC}1` = badge foil, `{TC}2–12` = players, `{TC}13` = team photo, `{TC}14–20` = players
+
+## Inventory status rules
+- `missing` — not yet collected (default for all on first init)
+- `owned` — placed in album (set by album page scans)
+- `extra` — duplicate/spare for trading (set by extras scans)
+- **`owned` is never downgraded** — never overwrite owned → missing
+
+---
+
+## SCAN PROTOCOL — follow this exactly when user says "scan my inbox" or similar
+
+### Step 1 — List images
+```bash
+python3.11 scripts/scan.py
+```
+This shows what's in `images/inbox/`. Process each image one by one.
+
+### Step 2 — For each image, use the Read tool to view it, then classify:
+
+**TYPE A: Album page** — open album spread with sticker slots printed on pages
+- Empty slots show the sticker code (e.g. `SUI 7`, `NZL 3`) printed inside the placeholder silhouette
+- Filled slots have an actual sticker photo placed in them
+- One spread = two pages = typically one team across two pages
+
+**TYPE B: Loose stickers** — pile of loose cards scattered on a surface
+- Individual cards with player photos and codes on the edges
+
+### Step 3 — Extract codes and call the update script
+
+**For album pages:**
+1. Identify the team code from the page header (e.g. "WE ARE SWITZERLAND" → `SUI`)
+2. List all FILLED slots (stickers placed = OWNED)
+3. Call:
+```bash
+python3.11 scripts/update_inventory.py \
+  --image IMG_XXXX.jpeg \
+  --type album_page \
+  --team SUI \
+  --owned SUI2,SUI6,SUI13
+```
+(List only the codes where the sticker IS placed. Everything else in that team will be marked missing automatically.)
+
+**For loose/extra stickers:**
+1. Read as many sticker codes as visible
+2. Call:
+```bash
+python3.11 scripts/update_inventory.py \
+  --image IMG_XXXX.jpeg \
+  --type extras \
+  --stickers ARG3,COL13,URU2,BRA7
+```
+
+### Step 4 — After all images processed:
+```bash
+python3.11 scripts/status.py
+python3.11 scripts/report.py
+```
+
+### Validation rules
+- Only pass codes that exist in `data/catalog.json` (update_inventory.py will reject unknowns)
+- If unsure about a code, omit it rather than guess
+- A page may show TWO teams (back-to-back spread) — process each team separately
+
+---
+
+## Key files
+- `data/catalog.json` — 980-sticker master list
+- `data/inventory.db` — SQLite DB (auto-created)
+- `images/inbox/` — drop new photos here
+- `images/processed/` — moved here after update_inventory.py runs
+- `reports/` — HTML reports for iPhone
+
+## CLI reference
+```bash
+python3.11 scripts/build_catalog.py   # one-time setup
+python3.11 scripts/scan.py            # list inbox contents
+python3.11 scripts/update_inventory.py --help
+python3.11 scripts/status.py          # terminal overview
+python3.11 scripts/missing.py         # missing list (--team ARG or --group J)
+python3.11 scripts/trade.py           # extras for trading
+python3.11 scripts/report.py          # generate iPhone HTML report
+```

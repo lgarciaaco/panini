@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.env
+data/inventory.db
+reports/
+images/inbox/
+images/processed/
+images/extras/
+.DS_Store
+*.swp
